@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Xbim.Common.Geometry;
+using Xbim.Ifc;
 using Xbim.IO;
 using Xbim.ModelGeometry.Scene;
 using XbimDemoWebApp.Models;
-using XbimGeometry.Interfaces;
 
 namespace XbimDemoWebApp.Controllers
 {
@@ -83,16 +84,16 @@ namespace XbimDemoWebApp.Controllers
                 Clean(xbimFileName, geometryFileName);
             }
 
-            using (var model = new XbimModel())
-            {
-                if (!Cached(xbimFileName))
-                {
-                    //Parse IFC to xbim
-                    model.CreateFrom(ifcModel, xbimFileName, null, true);
-                }
-                // Generate Geometry
-                BuildGeometry(model, geometryFileName);
-            }
+            //using (var model = new XbimModel())
+            //{
+            //    if (!Cached(xbimFileName))
+            //    {
+            //        //Parse IFC to xbim
+            //        model.CreateFrom(ifcModel, xbimFileName, null, true);
+            //    }
+            //    // Generate Geometry
+            //    BuildGeometry(model, geometryFileName);
+            //}
 
             return new BimModel(modelName, Path.GetFileName(geometryFileName));
 
@@ -127,14 +128,14 @@ namespace XbimDemoWebApp.Controllers
 
 
         // NOTE: I don't recommend you do this under a web server due to the use of unmanaged code and the fact the operation is very expensive in terms of resources
-        private void BuildGeometry(XbimModel model, string geometryFileName)
+        private void BuildGeometry(IfcStore model, string geometryFileName)
         {
             if (Cached(geometryFileName))
             {
                 return;
             }
             var m3DModelContext = new Xbim3DModelContext(model);
-            m3DModelContext.CreateContext(XbimGeometryType.PolyhedronBinary);
+            m3DModelContext.CreateContext();
 
             ExportGeometryData(geometryFileName, m3DModelContext);
         }
@@ -145,7 +146,7 @@ namespace XbimDemoWebApp.Controllers
             {
                 using (var bw = new BinaryWriter(geometryStream))
                 {
-                    m3DModelContext.Write(bw);
+                   // m3DModelContext
 
                     bw.Close();
                     geometryStream.Close();
